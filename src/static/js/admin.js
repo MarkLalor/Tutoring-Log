@@ -11,7 +11,11 @@ $(function($)
 	});
 	
 	$(".download-excel").click(function(){
-		window.location.href = '/request?query=tutor&data2=csv&data1=' + encodeURIComponent($("#club-member").val());
+		window.open('/request?query=tutor&email=' + encodeURIComponent($("#club-member").val()) + '&type=csv', '_blank');
+	});
+	
+	$(".printable-report").click(function(){
+		window.open('/request?query=tutor&email=' + encodeURIComponent($("#club-member").val()) + '&type=pdf', '_blank');
 	});
 });
 
@@ -39,7 +43,7 @@ function loadTutor(email)
 	$('#data-table').empty();
 	$.ajax({
 		type: "GET",
-		data: {'query': 'tutor', 'data1': email},
+		data: {'query': 'tutor', 'email': email},
 		url: "request",
 		dataType: "text",
 		success: function(data) {
