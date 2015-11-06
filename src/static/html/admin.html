@@ -1,0 +1,57 @@
+<div id = "menu" class="basic-grey-3">
+<table class = "wide-table">
+	<tr class = "wide-options-row" id = "menu-row">
+		<td><a class = "wide-link">Edit Club Members</a></td>
+		<td><a class = "wide-link">Edit Application Text</a></td>
+		<td><a class = "wide-link">View Graphs</a></td>
+		<td><a class = "wide-link">Generate Printable Overall Report</a></td>
+		<td><a class = "wide-link">Submit a Log Manually</a></td>
+	</tr>
+</table>
+</div>
+<div id="modules">
+	<div class="module basic-grey-3" id = "logs">
+		<h1>Student Logs</h1>
+			<table class = "wide-table">
+				<tr>
+					<td><span class = "block-label">Club Member:</span></td>
+					<td><select class = "person-select" id = "club-member"><option id="tutors-loading" value="loading">Loading list of tutors...</option></select></td>
+				</tr>
+				<tr class = "wide-options-row wide-options-table-row">
+					<td><a data-which = "club-member" class = "wide-link view-log">View Log</a></td>
+					<td><a data-which = "club-member" class = "wide-link printable-report">Generate Printable Report</a></td>
+					<td><a data-which = "club-member" class = "wide-link download-excel">Download Excel</a></td>
+				</tr>
+				<tr>
+					<td><span class = "block-label">Student:</span></td>
+					<td><select class = "person-select" id = "student"><option disabled selected value = "" style = "display: none;"> -- select a tutored student -- </option></select></td>
+				</tr>
+				<tr class = "wide-options-row wide-options-table-row">
+					<td><a data-which = "club-member" class = "wide-link view-log">View Log</a></td>
+					<td><a data-which = "club-member" class = "wide-link printable-report">Generate Printable Report</a></td>
+					<td><a data-which = "club-member" class = "wide-link download-excel">Download Excel</a></td>
+				</tr>
+			</table>
+	</div>
+	<div class="module basic-grey-3" id = "stats">
+		<h1>Statistics</h1>
+		<p> this is a test </p>
+	</div>
+</div>
+<div id="data" class="basic-grey-3">
+	<h1 id = "data-title">Information Panel</h1>
+	<div id="data-div">
+		<div class = "data-view" id = "log-view">
+			
+		</div>
+		<div class = "data-view" id = "">
+			<span>Summary: </span><span></span>
+			<table id = "data-table">
+				
+			</table>
+		</div>
+	</div>
+</div>
+<div id="dialog" style="display: none;">
+	<p id="dialogreport">Content</p>
+</div>
