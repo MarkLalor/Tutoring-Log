@@ -34,7 +34,6 @@ class Request(webapp2.RequestHandler):
         for i in range(0, entries):
             rows += '<tr>'
             for key in keys:
-                
                 if key == 'minutes':
                     time = int(data[key][i])
                     rows += '<td class = "normal">' + format_minutes(time) + '</td>'
@@ -90,7 +89,6 @@ class Request(webapp2.RequestHandler):
             padding-bottom: -5px;
             border-bottom: 3px solid black;
         }
-        
         </style>
         </head>
         <body>
@@ -108,12 +106,21 @@ class Request(webapp2.RequestHandler):
         </table>
         <span id = "time">Total: %s</span>
         </body>
+        </html>
         ''' % (data['tutor_first'][0], data['tutor_last'][0], rows, format_minutes(total_minutes))
     
     def get(self):
         ### Database queries ###
         query = self.request.get('query')
         if not query == '' and users.is_current_user_admin():
+#             if query == 'zip':
+#                 url = urllib2.urlopen('http://example.com/foo.jpg')
+#                 f = StringIO()
+#                 zip = zipfile.ZipFile(f, 'w')
+#                 zip.writestr('foo.jpg', url.read())
+#                 self.response.headers['Content-Type'] = 'application/zip'
+#                 self.response.headers['Content-Disposition'] = str('attachment; filename="Tutor_All.zip"')
+#                 self.response.out.write()
             if query == 'tutor':
                 if self.request.get('type') == 'csv':
                     data = json.loads(self.tutorDataJSON(self.request.get('email')))
@@ -182,18 +189,19 @@ class Request(webapp2.RequestHandler):
         key = 'tutor_data_' + email
         data = memcache.get(key)
         if data is None or should_reload:
+            print "Reloading... " + key
             q = TutoringSession.all()
             q.filter("tutor_email", email)
             q.order("date_tutored")
             compiled = {}
             for p in q.run(limit=2000):
                 session_dict = p.to_dict()
-                for key in session_dict.keys():
-                    if not key in compiled:
-                        compiled[key] = []
-                    compiled[key].append(session_dict[key])
+                for k in session_dict.keys():
+                    if not k in compiled:
+                        compiled[k] = []
+                    compiled[k].append(session_dict[k])
             data = json.dumps(compiled)
-            memcache.add(key, data, 300) #5 minutes per student
+            memcache.add(key=key, value=data, time=300) #5 minutes per student
         return data
     
 app = webapp2.WSGIApplication([('/request', Request)], debug=is_debug())

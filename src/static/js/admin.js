@@ -51,6 +51,7 @@ function loadTutor(email)
 			var parsed = JSON.parse(data);
 			var keys = ["tutee_name", "tutee_email", "subject", "date_tutored", "minutes", "satisfaction", "comments", "id"];
 			var body = $('<tbody></tbody>');
+			var total_minutes = 0;
 			for (var i = 0; i < parsed["tutee_name"].length; i++)
 			{
 				var row = $('<tr></tr>');
@@ -63,12 +64,24 @@ function loadTutor(email)
 				    	content = '<div style="max-width: 180px; max-height: 80px; overflow: auto;">' + parsed[key][i] + '</div>';
 					else
 						content = parsed[key][i];
-					
+				    
+				    if (key == 'minutes')
+				    	total_minutes += parseInt(parsed[key][i]);
+				    
 				    row.append($('<td></td>').attr('class', 'data-' + key).html(content));
 				}
 				body.append(row);
 			}
 			$('#data-table').append(body);
+			
+			$('#data-time').html(format_minutes(total_minutes))
 		}
 	});
+}
+
+function format_minutes(time)
+{
+	hours = Math.floor(time/60);
+    minutes = time % 60;
+    return String(hours) + (hours > 0 ? (hours > 1 ? ' hours' : ' hour') : '') + ' ' + String(minutes) + (minutes > 0 ? (minutes > 1 ? ' minutes' : ' minute') : '');
 }
