@@ -23,16 +23,19 @@ function loadTutors()
 {
 	//Retrieve tutor list
 	$.ajax({
-		type: "GET",
-		data: {'r': 'tutors'},
-		url: "request",
-		dataType: "text",
-		success: function(data) {
+		type: 'GET',
+		data: 'tutors',
+		url: 'request',
+		dataType: 'text',
+		success: function(data)
+		{
 			$('#club-member').append('<option disabled selected value = "" style = "display: none;"> -- select a tutor -- </option>');
-			var parsed = JSON.parse(data);  
-			parsed.map(function(obj) {
-				$('#club-member').append($("<option></option>").attr("value", obj['email']).text(obj['last'] + ', ' + obj['first'] + ', ' + obj['email']));
+			
+			JSON.parse(data).map(function(tutor)
+			{
+				$('#club-member').append($("<option></option>").attr("value", tutor[2]).text(tutor[0] + ', ' + tutor[1] + ', ' + tutor[2]));
 			});
+			
 			$("#tutors-loading").remove();
 		}
 	});

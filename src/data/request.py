@@ -14,6 +14,8 @@ from six import StringIO
 
 
 def format_minutes(time):
+    if time == 0:
+        return '0'
     hours = time // 60
     minutes = time % 60
     return (str(hours) + (' hours' if hours > 1 else ' hour') if hours > 0 else '') + (' ' + str(minutes) + (' minutes' if minutes > 1 else ' minute') if minutes > 0 else '')
@@ -43,55 +45,15 @@ class Request(webapp2.RequestHandler):
             rows += '</tr>'
             
         
+        with open('static/css/pdf.css', 'r') as f: css = f.read()
+        
         return '''
         <html>
         <head>
-        <style type = "text/css">
-        @page {
-            size: letter portrait;
-            @frame content_frame {
-                left: 50pt;
-                width: 512pt;
-                top: 30pt;
-                height: 692pt;
-            }
-        }
-        #title
-        {
-            font-size: 5em;
-            font-family: "Times New Roman", Times, serif;
-        }
-        #info
-        {
-            font-size: 2em;
-        }
-        #label, #time
-        {
-            font-size: 2em;
-        }
-        div
-        {
-            text-align: center;
-        }
-        table
-        {
-            font-size: 1.4em;
-            margin: 30px auto;
-        }
-        .normal
-        {
-            border-bottom: 1px solid black;
-            padding-top: 3px;
-        }
-        .head
-        {
-            font-size: 1.5em;
-            padding-bottom: -5px;
-            border-bottom: 3px solid black;
-        }
-        </style>
+        <style type = "text/css">%s</style>
         </head>
         <body>
+        
         <div id = "title" class = "center">Tutoring Log</span></div>
         <div id = "label" class = "center">Mu Alpha Theta - Math Honor Society</div>
         <div id = "label" class = "center">%s %s</div>
@@ -107,20 +69,80 @@ class Request(webapp2.RequestHandler):
         <span id = "time">Total: %s</span>
         </body>
         </html>
-        ''' % (data['tutor_first'][0], data['tutor_last'][0], rows, format_minutes(total_minutes))
+        ''' % (css, data['tutor_first'][0], data['tutor_last'][0], rows, format_minutes(total_minutes))
+        
+    @staticmethod
+    def summaryJSONtoPDF(data):
+        #If there was nothing retrieved
+        if not data:
+            return "No data"
+        
+        #Open the PDF stylesheet for use with XHTML to PDF.
+        with open('static/css/pdf.css', 'r') as f: css = f.read()
+        
+        rows = ''
+        rows2 = ''
+        minutes = 0
+        
+        #Create a row with each tutor's data
+        for tutor in data:
+            minutes += int(tutor[3])
+            
+            rows += '<tr>'
+            rows += '<td class = "normal">' + str(tutor[0]) + '</td>'
+            rows += '<td class = "normal">' + str(tutor[1]) + '</td>'
+            rows += '<td class = "normal">' + str(tutor[2]) + '</td>'
+            rows += '<td class = "normal">' + format_minutes(tutor[3]) + '</td>'
+            rows += '</tr>'
+            
+        data.sort(key = lambda x: x[3], reverse=True)
+        #Create a row with each tutor's data in order of minutes
+        for tutor in data:
+            rows2 += '<tr>'
+            rows2 += '<td class = "normal">' + str(tutor[0]) + '</td>'
+            rows2 += '<td class = "normal">' + str(tutor[1]) + '</td>'
+            rows2 += '<td class = "normal">' + str(tutor[2]) + '</td>'
+            rows2 += '<td class = "normal">' + format_minutes(tutor[3]) + '</td>'
+            rows2 += '</tr>'
+        
+        #Return the created XHTML to be rendered into a PDF.
+        return '''
+        <html>
+        <head>
+        <style type = "text/css">%s</style>
+        </head>
+        <body>
+        
+        <div id = "title" class = "center">Tutoring Log</span></div>
+        <div id = "label" class = "center">Mu Alpha Theta - Math Honor Society</div>
+        <div id = "label" class = "center">All Students (Alphabetical)</div>
+        
+        <table>
+        <thead>
+          <tr><td class = "head">Name</td><td class = "head">Sessions</td><td class = "head">Tutees</td><td class = "head">Time</td></tr>
+        </thead>
+        <tbody>
+        %s
+        </tbody>
+        </table>
+        
+        <table style = "page-break-before: always;">
+        <thead>
+          <tr><td class = "head">Name</td><td class = "head">Sessions</td><td class = "head">Tutees</td><td class = "head">Time</td></tr>
+        </thead>
+        <tbody>
+        %s
+        </tbody>
+        </table>
+        <span id = "time">Total: %s</span>
+        </body>
+        </html>
+        ''' % (css, rows, rows2, format_minutes(minutes))
     
     def get(self):
         ### Database queries ###
         query = self.request.get('query')
         if not query == '' and users.is_current_user_admin():
-#             if query == 'zip':
-#                 url = urllib2.urlopen('http://example.com/foo.jpg')
-#                 f = StringIO()
-#                 zip = zipfile.ZipFile(f, 'w')
-#                 zip.writestr('foo.jpg', url.read())
-#                 self.response.headers['Content-Type'] = 'application/zip'
-#                 self.response.headers['Content-Disposition'] = str('attachment; filename="Tutor_All.zip"')
-#                 self.response.out.write()
             if query == 'tutor':
                 if self.request.get('type') == 'csv':
                     data = json.loads(self.tutorDataJSON(self.request.get('email')))
@@ -155,7 +177,7 @@ class Request(webapp2.RequestHandler):
                 
         ### Item requests ###
         request = self.request.get('r')
-        if request == 'tutors':
+        if 'tutors' in self.request.GET:
             self.response.out.write(self.tutorsJSON())
         elif request == 'refreshtutors':
             q = db.GqlQuery("SELECT * FROM Tutor")
@@ -167,6 +189,13 @@ class Request(webapp2.RequestHandler):
                 print line
                 tutor = Tutor(last=line[0], first=line[1], email=line[2])
                 tutor.put()
+        elif request == 'summary':
+            data = json.loads(self.tutorSummaryJSON())
+            self.response.headers['Content-Type'] = 'application/pdf'
+            output = StringIO()
+            pdf = pisa.CreatePDF(Request.summaryJSONtoPDF(data), output, encoding='utf-8')
+            pdf_data = pdf.dest.getvalue()
+            self.response.out.write(pdf_data)
                 
     
     def tutorsJSON(self, should_reload=False):
@@ -175,14 +204,54 @@ class Request(webapp2.RequestHandler):
         if data is None or should_reload:
             #Load data if not cached
             q = db.GqlQuery("SELECT * FROM Tutor ORDER BY last")
-            results = q.run()
-            total = []
-            for p in results:
-                total.append(p.to_dict())
-            data = json.dumps(total)
+            #Empty tutors list.
+            tutors = []
+            #Iterate through all the database results.
+            for tutor in q.run(batch_size=200):
+                #Add the tutor list data to the tutors list.
+                tutors.append(tutor.to_list())
+            #Create JSON string to store in memcache.
+            data = json.dumps(tutors)
             #Add to cache
             memcache.add('tutors', data, 3600)
-        #Return data
+        #Return created or cached data
+        return data
+    
+    def tutorSummaryJSON(self, should_reload=False):
+        #Retrieved cached summary.
+        data = memcache.get('summary')
+        #If it does not exist or is expired, create it.
+        if data is None or should_reload:
+            #Get all the tutors
+            tutors = json.loads(self.tutorsJSON())
+            summary = []
+            # Go through each tutor
+            for tutor in tutors:
+                first = tutor['first']
+                last = tutor['last']
+                email = tutor['email']
+                #Get their individual data
+                data = json.loads(self.tutorDataJSON(email, should_reload))
+                
+                #Default values to 0.
+                minutes, sessions, tutees = (0,)*3
+                
+                #If there is data for the student, set the minutes, sessions, and tutees.
+                if data:
+                    minutes_list = [int(n) for n in data['minutes']] #Stored minutes into integer list
+                    minutes = sum(minutes_list) #Sum for the total minutes
+                    
+                    tutees_list = data['tutee_email'] #List all the tutees emails
+                    tutees = len(set(tutees_list)) #Find the length of the set of unique email
+                    
+                    sessions = len(minutes_list) #Number of sessions is equal to the number of entries
+                
+                #Add row to the summary.
+                summary.append([last + ', ' + first, sessions, tutees, minutes])
+            #Turn the summary into JSON data.
+            data = json.dumps(summary)
+            #Cache this value for 5 minutes.
+            memcache.add('summary', data, 300)
         return data
     
     def tutorDataJSON(self, email, should_reload=False):
