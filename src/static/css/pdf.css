@@ -7,18 +7,26 @@
         height: 692pt;
     }
 }
-#title
+.title
 {
     font-size: 5em;
     font-family: "Times New Roman", Times, serif;
+}
+.break
+{
+	page-break-before: always;
 }
 #info
 {
     font-size: 2em;
 }
-#label, #time
+.label, #time
 {
     font-size: 2em;
+}
+.biglabel
+{
+	font-size: 3em;
 }
 div
 {

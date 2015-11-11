@@ -3,6 +3,7 @@
 	max-width: 90%;
 	margin-left: auto;
 	margin-right: auto;
+	margin-bottom: 60px;
 }
 #menu
 {
@@ -201,4 +202,14 @@
 {
 	text-align: center;
 	margin: 5px;
+}
+
+#stat-table tr:first-child 
+{
+	border-top: 1px solid #CCC;
+}
+
+#stat-table tr
+{
+	border-bottom: 1px solid #CCC;
 }

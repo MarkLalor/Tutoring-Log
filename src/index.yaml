@@ -12,6 +12,11 @@ indexes:
 
 - kind: TutoringSession
   properties:
+  - name: tutee_email
+  - name: date_tutored
+
+- kind: TutoringSession
+  properties:
   - name: tutor_email
   - name: date_tutored
 
